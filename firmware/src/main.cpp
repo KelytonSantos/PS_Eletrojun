@@ -48,6 +48,7 @@ PubSubClient client(esp);
 void setup()
 {
   Serial.begin(115200);
+  connect();
   configTime(gmtOffset_sec, 0, ntpServer);
 
   pinMode(DHT_P, INPUT);
@@ -56,7 +57,7 @@ void setup()
   pinMode(LED3, OUTPUT);
 
   dht.begin();
-  connect();
+
   mqtt();
 }
 
@@ -72,9 +73,80 @@ void loop()
     return;
   }
 }
+//_________________________________________________
+void connect()
+{
+  WiFi.begin(ssid, pass);
 
-void connect() {}
-void mqtt() {}
-void callback(char *topic, byte *payload, unsigned int length) {}
-void reconnectBroker() {}
+  while (WiFi.status() != WL_CONNECTED)
+  {
+    delay(500);
+    Serial.println(".");
+  }
+}
+//_________________________________________________
+
+//_________________________________________________
+void mqtt()
+{
+  client.setServer(mqtt_server, mqtt_port);
+  client.setCallback(callback);
+}
+//_________________________________________________
+
+void callback(char *topic, byte *payload, unsigned int length)
+{
+  String message = "";
+
+  for (int i = 0; i < length; i++)
+  {
+    message += (char)payload;
+  }
+
+  if (String(topic) == "esp32_Eletrojun_Dht11/modo")
+  {
+    if (message == "DESLIGADO" || message == "LIGADO" || message == "AUTOMATICO")
+    {
+      actualMode = message;
+      pendingReading = false;
+      Serial.print("[MODE]: Updating to: ");
+      Serial.println(actualMode);
+    }
+
+    else if (message == "LEITURA")
+    {
+      if (actualMode == "LIGADO")
+      {
+        pendingReading = true;
+        Serial.println("[MODE] Manual Reading requested");
+      }
+      else
+        Serial.println("[MODE] Command LEITURA ignored (not in LIGADO mode)");
+    }
+  }
+}
+//_________________________________________________
+
+void reconnectBroker()
+{
+  while (!client.connected())
+  {
+    Serial.println("[MQTT] Trying to connect to the broker...");
+    String clientId = "Esp32EletrojunDht11";
+
+    if (client.connect(clientId.c_str()))
+    {
+      Serial.println("[MQTT] Connected");
+      client.subscribe("esp32_Eletrojun_Dht11/modo");
+      Serial.println("[MQTT] Subscribed: esp32_Eletrojun_Dht11/modo");
+    }
+    else
+    {
+      Serial.print("[MQTT] Error, rc=");
+      Serial.print(client.state());
+      Serial.println(" | Trying again in 5s...");
+      delay(5000);
+    }
+  }
+}
 Response mode(struct tm, unsigned long) {}
