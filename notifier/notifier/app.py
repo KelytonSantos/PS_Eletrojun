@@ -28,6 +28,7 @@ class NotifierService:
             settings.smtp_password,
             settings.smtp_from,
             settings.smtp_timeout_seconds,
+            settings.smtp_security,
         )
         self.alert_engine = AlertEngine(
             storage=self.storage,

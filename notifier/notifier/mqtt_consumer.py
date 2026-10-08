@@ -45,7 +45,12 @@ class MQTTConsumer:
         return self._client
 
     def start(self) -> None:
-        self._client.connect(self._broker_url, self._port)
+        self._client.reconnect_delay_set(min_delay=1, max_delay=30)
+        try:
+            self._client.connect(self._broker_url, self._port)
+        except Exception as exc:
+            logger.error("MQTT initial connection failed; retrying asynchronously", extra={"error": str(exc)})
+            self._client.connect_async(self._broker_url, self._port)
         self._client.loop_start()
 
     def stop(self) -> None:
@@ -61,6 +66,11 @@ class MQTTConsumer:
 
     def _on_disconnect(self, client, userdata, disconnect_flags, reason_code, properties):
         logger.warning("MQTT disconnected", extra={"reason_code": reason_code})
+        if reason_code != 0:
+            try:
+                client.reconnect()
+            except Exception as exc:
+                logger.error("MQTT reconnect attempt failed", extra={"error": str(exc)})
 
     def _on_message(self, client, userdata, message):
         try:

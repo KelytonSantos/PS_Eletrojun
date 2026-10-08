@@ -36,8 +36,15 @@ Variáveis mínimas:
 - `SMTP_USERNAME`
 - `SMTP_PASSWORD`
 - `SMTP_FROM`
+- `SMTP_SECURITY` (`none`, `starttls` ou `tls`)
 - `ALERT_CONFIG_FILE` ou `ALERT_DATABASE_URL`
 - `ALERT_COOLDOWN_SECONDS`
+
+### TLS/STARTTLS SMTP
+
+- `SMTP_SECURITY=none`: conexão SMTP sem TLS explícito (compatível com SMTP local/falso de testes).
+- `SMTP_SECURITY=starttls`: usa SMTP com upgrade STARTTLS.
+- `SMTP_SECURITY=tls`: usa TLS implícito (SMTP sobre SSL, ex.: porta 465).
 
 ## Execução local
 

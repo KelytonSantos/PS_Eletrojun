@@ -13,6 +13,7 @@ class EmailSender:
         password: str | None,
         sender: str,
         timeout_seconds: float,
+        security: str = "none",
     ) -> None:
         self._host = host
         self._port = port
@@ -20,6 +21,7 @@ class EmailSender:
         self._password = password
         self._sender = sender
         self._timeout_seconds = timeout_seconds
+        self._security = security
 
     def send_alert(
         self,
@@ -55,8 +57,12 @@ class EmailSender:
         message.set_content(text)
         message.add_alternative(html, subtype="html")
 
-        with smtplib.SMTP(self._host, self._port, timeout=self._timeout_seconds) as smtp:
+        smtp_factory = smtplib.SMTP_SSL if self._security == "tls" else smtplib.SMTP
+        with smtp_factory(self._host, self._port, timeout=self._timeout_seconds) as smtp:
             smtp.ehlo()
+            if self._security == "starttls":
+                smtp.starttls()
+                smtp.ehlo()
             if self._username:
                 smtp.login(self._username, self._password or "")
             smtp.send_message(message)
