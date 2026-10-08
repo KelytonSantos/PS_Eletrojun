@@ -16,16 +16,24 @@ def create_http_app(storage: AlertStorage) -> Flask:
     def add_email(email: str):
         try:
             emails = storage.add_email(email)
-        except ValueError as exc:
-            return jsonify({"success": False, "error": str(exc)}), 400
+        except ValueError:
+            return (
+                jsonify(
+                    {
+                        "success": False,
+                        "error": "Email vazio, inválido ou já cadastrado",
+                    }
+                ),
+                400,
+            )
         return jsonify({"success": True, "emails": emails})
 
     @app.delete("/api/realtime/email/<path:email>")
     def delete_email(email: str):
         try:
             emails = storage.remove_email(email)
-        except ValueError as exc:
-            return jsonify({"success": False, "error": str(exc)}), 400
+        except ValueError:
+            return jsonify({"success": False, "error": "Email vazio ou inválido"}), 400
         return jsonify({"success": True, "emails": emails})
 
     @app.get("/api/realtime/limits")
@@ -52,8 +60,16 @@ def create_http_app(storage: AlertStorage) -> Flask:
 
         try:
             limits = storage.update_limits(temp=temp, humi=humi)
-        except ValueError as exc:
-            return jsonify({"success": False, "error": str(exc)}), 400
+        except ValueError:
+            return (
+                jsonify(
+                    {
+                        "success": False,
+                        "error": "temp e humi são obrigatórios, finitos e dentro das faixas permitidas",
+                    }
+                ),
+                400,
+            )
 
         return jsonify({"success": True, "tempMax": limits.temp_max, "humiMin": limits.humi_min})
 
