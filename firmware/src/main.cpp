@@ -119,7 +119,7 @@ void callback(char *topic, byte *payload, unsigned int length)
 
   for (int i = 0; i < length; i++)
   {
-    message += (char)payload;
+    message += (char)payload[i];
   }
 
   if (String(topic) == "esp32_Eletrojun_Dht11/modo")
