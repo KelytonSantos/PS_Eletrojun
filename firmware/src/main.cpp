@@ -72,6 +72,25 @@ void loop()
     Serial.println("Error retrieving the time");
     return;
   }
+
+  if (!client.connected())
+  {
+    reconnectBroker();
+  }
+  client.loop();
+
+  if (isnan(dht.readTemperature()) || isnan(dht.readHumidity()))
+  {
+    Serial.println("Not A Number");
+    delay(1000);
+    return;
+  }
+
+  unsigned long now = millis();
+
+  response = mode(timeinfo, now);
+
+  delay(1000);
 }
 //_________________________________________________
 void connect()
@@ -149,4 +168,50 @@ void reconnectBroker()
     }
   }
 }
-Response mode(struct tm, unsigned long) {}
+Response mode(struct tm timeInfo, unsigned long now)
+{
+  Response response;
+
+  strftime(response.formatedDate, sizeof(response.formatedDate), "%Y-%m-%dT%H:%M:%S", &timeInfo);
+  response.temperature = dht.readTemperature();
+  response.humidity = dht.readHumidity();
+
+  if (actualMode == "DESLIGADO")
+  {
+    digitalWrite(LED3, HIGH);
+    digitalWrite(LED2, LOW);
+    digitalWrite(LED1, LOW);
+
+    return response;
+  }
+
+  if (actualMode == "LIGADO")
+  {
+    digitalWrite(LED1, HIGH);
+    digitalWrite(LED2, LOW);
+    digitalWrite(LED3, LOW);
+
+    if (pendingReading)
+    {
+      pendingReading = false;
+      String payload = String(response.temperature) + "," + String(response.humidity) + "," + response.formatedDate;
+      Serial.printf("[LIGADO] T: %.1f H: %.1f Hora: %s\n", response.temperature, response.humidity, response.formatedDate);
+      client.publish("esp32_Eletrojun_Dht11/sensor", payload.c_str());
+    }
+    return response;
+  }
+
+  digitalWrite(LED2, HIGH);
+  digitalWrite(LED1, LOW);
+  digitalWrite(LED3, LOW);
+
+  if (now - lastMsg > 5000)
+  {
+    lastMsg = now;
+    String payload = String(response.temperature) + "," + String(response.humidity) + "," + response.formatedDate;
+    Serial.printf("[AUTO] T: %.1f H: %.1f Hora: %s\n", response.temperature, response.humidity, response.formatedDate);
+    client.publish("esp32_Eletrojun_Dht11/sensor", payload.c_str());
+  }
+
+  return response;
+} //_________________________________________________
