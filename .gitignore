@@ -1,4 +1,4 @@
-# Secrets and local configuration
+﻿# Secrets and local configuration
 .env
 .env.*
 !.env.example
@@ -7,9 +7,11 @@
 # Python
 .venv/
 venv/
+env/
 __pycache__/
 *.py[cod]
 .pytest_cache/
+.mypy_cache/
 .coverage
 htmlcov/
 
@@ -30,6 +32,11 @@ node_modules/
 
 # Runtime data and logs
 *.sqlite3
+*.db
 *.log
 logger/data/
 notifier/data/
+
+# OS metadata
+.DS_Store
+Thumbs.db
