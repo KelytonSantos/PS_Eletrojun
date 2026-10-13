@@ -6,24 +6,31 @@ leituras MQTT, registrar o histórico e enviar alertas.
 ## Arquitetura
 
 ```text
-                          MQTT broker externo
-                         /        |          \
-                        /         |           \
-                 ESP32 ----> API Java      Logger Python
-                    ^       (comandos)     (LogEsp.txt)
-                    |             |              |
-                    +-------------+--------------+
-                                  |
-                           Notifier Python
-                         (alertas por e-mail)
+FLUXO HTTP
 
 Cliente HTTP
-     |
-     v
+    |
+    v
 Gateway Nginx :8080
-   |                     |
-   +--> /api/realtime --> API Java :8081
-   +--> /api/alerts ----> Notifier :8082
+    |------------------------------|
+    v                              v
+API Java :8081                Notifier :8082
+(/api/realtime)               (/api/alerts)
+
+
+FLUXO MQTT
+
+ESP32 <------> MQTT broker externo <------> API Java
+  |                    |                      |
+  |                    |                      +-- publica comandos
+  |                    |
+  |                    +--------------------> Logger Python
+  |                    |                       grava /data/LogEsp.txt
+  |                    |
+  |                    +--------------------> Notifier Python
+  |                                            envia alertas por e-mail
+  |
+  +-- publica leituras de temperatura e umidade
 ```
 
 ### Módulos
