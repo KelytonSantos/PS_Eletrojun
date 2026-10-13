@@ -1,0 +1,58 @@
+services:
+  api:
+    build:
+      context: ./api
+    environment:
+      SERVER_PORT: 8081
+      MQTT_BROKER_URL: tcp://${MQTT_BROKER_HOST:-broker.hivemq.com}:${MQTT_PORT:-1883}
+      MQTT_PORT: ${MQTT_PORT:-1883}
+      MQTT_SENSOR_TOPIC: ${MQTT_SENSOR_TOPIC:-esp32_Eletrojun_Dht11/sensor}
+      MQTT_MODE_TOPIC: ${MQTT_MODE_TOPIC:-esp32_Eletrojun_Dht11/modo}
+    expose:
+      - "8081"
+    restart: unless-stopped
+
+  logger:
+    build:
+      context: ./logger
+    environment:
+      LOG_FILE_PATH: /data/LogEsp.txt
+      MQTT_BROKER_URL: ${MQTT_BROKER_HOST:-broker.hivemq.com}
+      MQTT_BROKER_PORT: ${MQTT_PORT:-1883}
+      MQTT_CLIENT_ID: ${MQTT_LOGGER_CLIENT_ID:-eletronjun-log-service}
+      MQTT_TOPIC: ${MQTT_SENSOR_TOPIC:-esp32_Eletrojun_Dht11/sensor}
+    volumes:
+      - logger-data:/data
+    restart: unless-stopped
+
+  notifier:
+    build:
+      context: ./notifier
+    env_file:
+      - ./notifier/.env
+    environment:
+      HTTP_HOST: 0.0.0.0
+      HTTP_PORT: 8082
+      ALERT_CONFIG_FILE: /data/notifier_data.sqlite3
+      MQTT_BROKER_URL: ${MQTT_BROKER_HOST:-broker.hivemq.com}
+      MQTT_PORT: ${MQTT_PORT:-1883}
+    expose:
+      - "8082"
+    volumes:
+      - notifier-data:/data
+    restart: unless-stopped
+
+  gateway:
+    image: nginx:1.27-alpine
+    depends_on:
+      - api
+      - notifier
+    ports:
+      - "8080:80"
+    volumes:
+      - ./nginx/nginx.conf:/etc/nginx/nginx.conf:ro
+    restart: unless-stopped
+
+volumes:
+  logger-data:
+  notifier-data:

@@ -16,6 +16,8 @@ class AlertState:
     last_sent_at: datetime | None = None
 
 
+import threading
+
 class AlertEngine:
     def __init__(self, storage: AlertStorage, sender, cooldown_seconds: int) -> None:
         self._storage = storage
@@ -23,6 +25,7 @@ class AlertEngine:
         self._cooldown = timedelta(seconds=max(0, cooldown_seconds))
         self._temp_state = AlertState()
         self._humi_state = AlertState()
+        self._lock = threading.Lock()
 
     def process_reading(self, reading: SensorReading, source_topic: str) -> None:
         limits = self._storage.get_limits()
@@ -62,20 +65,23 @@ class AlertEngine:
         measured_at_iso: str,
         source_topic: str,
     ) -> None:
-        if not violated:
-            state.active = False
-            state.last_sent_at = None
-            return
+        with self._lock:
+            if not violated:
+                state.active = False
+                state.last_sent_at = None
+                return
 
-        should_send = (not state.active) or (state.last_sent_at is None)
-        if state.active and state.last_sent_at is not None:
-            should_send = now - state.last_sent_at >= self._cooldown
+            should_send = (not state.active) or (state.last_sent_at is None)
+            if state.active and state.last_sent_at is not None:
+                should_send = (now >= state.last_sent_at) and (now - state.last_sent_at >= self._cooldown)
 
-        state.active = True
-        if not should_send:
-            return
+            if not should_send:
+                return
 
-        recipients = self._storage.list_emails()
+            state.active = True
+            state.last_sent_at = now
+            recipients = self._storage.list_emails()
+
         for recipient in recipients:
             try:
                 self._sender.send_alert(
@@ -92,4 +98,3 @@ class AlertEngine:
                     "Alert delivery failed",
                     extra={"alert_type": alert_type, "recipient": recipient, "error": str(exc)},
                 )
-        state.last_sent_at = now

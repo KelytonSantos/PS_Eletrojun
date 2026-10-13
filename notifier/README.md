@@ -2,18 +2,21 @@
 
 Microsserviço Python independente para envio de alertas de temperatura e umidade por e-mail.
 
+O fluxo geral da arquitetura está documentado no
+[README principal](../README.md).
+
 ## Funcionalidades
 
 - Consome leituras MQTT do tópico configurável (`MQTT_SENSOR_TOPIC`, padrão `esp32_Eletrojun_Dht11/sensor`).
 - Faz parsing rigoroso de payload CSV no formato `temperatura,umidade,data_hora`.
 - Gerencia destinatários por HTTP:
-  - `GET /api/realtime/emails`
-  - `POST /api/realtime/email/{email}`
-  - `DELETE /api/realtime/email/{email}`
+  - `GET /api/alerts/emails`
+  - `POST /api/alerts/email/{email}`
+  - `DELETE /api/alerts/email/{email}`
 - Gerencia limites por HTTP:
-  - `GET /api/realtime/limits`
-  - `POST /api/realtime/limits` (JSON `{ "temp": ..., "humi": ... }`)
-  - `POST /api/realtime/limits?temp=...&humi=...`
+  - `GET /api/alerts/limits`
+  - `POST /api/alerts/limits` (JSON `{ "temp": ..., "humi": ... }`)
+  - `POST /api/alerts/limits?temp=...&humi=...`
 - Persistência em SQLite (arquivo configurável via `ALERT_CONFIG_FILE` ou `ALERT_DATABASE_URL`).
 - Envia e-mails com corpo texto e HTML.
 - Cooldown configurável (`ALERT_COOLDOWN_SECONDS`) com normalização de estado.
@@ -55,6 +58,24 @@ source .venv/bin/activate
 pip install -r requirements.txt
 python -m notifier.app
 ```
+
+## Execução com Docker Compose
+
+Na raiz do repositório, o Compose sobe o gateway Nginx na porta `8080`, a API
+Java internamente na porta `8081` e o notifier internamente na porta `8082`.
+O broker MQTT não é criado pelo Compose: os dois serviços conectam ao broker
+externo definido por `MQTT_BROKER_HOST` (por padrão, `broker.hivemq.com`).
+
+```bash
+docker compose up --build
+```
+
+O app usa somente:
+
+- `/api/realtime/*` para a API Java;
+- `/api/alerts/*` para o notifier Python.
+
+As credenciais SMTP continuam sendo lidas de `notifier/.env` pelo Compose.
 
 ## Testes
 

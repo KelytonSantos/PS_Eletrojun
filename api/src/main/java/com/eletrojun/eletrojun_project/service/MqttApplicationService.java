@@ -8,6 +8,8 @@ import java.util.concurrent.atomic.AtomicReference;
 import jakarta.annotation.PostConstruct;
 import jakarta.annotation.PreDestroy;
 
+import org.eclipse.paho.client.mqttv3.IMqttDeliveryToken;
+import org.eclipse.paho.client.mqttv3.MqttCallbackExtended;
 import org.eclipse.paho.client.mqttv3.MqttClient;
 import org.eclipse.paho.client.mqttv3.MqttConnectOptions;
 import org.eclipse.paho.client.mqttv3.MqttException;
@@ -54,6 +56,27 @@ public class MqttApplicationService {
             log.info("Iniciando MqttApplicationService em {} com Client ID {}", broker, clientId);
             client = new MqttClient(broker, clientId, new MemoryPersistence());
 
+            client.setCallback(new MqttCallbackExtended() {
+                @Override
+                public void connectComplete(boolean reconnect, String serverURI) {
+                    log.info("Conexão MQTT completada (reconnect={}). Assinando tópico de sensores: {}", reconnect, subTopic);
+                    subscribeToSensors();
+                }
+
+                @Override
+                public void connectionLost(Throwable cause) {
+                    log.warn("Conexão MQTT perdida com o broker: {}", cause != null ? cause.getMessage() : "sem causa detalhada");
+                }
+
+                @Override
+                public void messageArrived(String topic, MqttMessage message) {
+                }
+
+                @Override
+                public void deliveryComplete(IMqttDeliveryToken token) {
+                }
+            });
+
             MqttConnectOptions options = new MqttConnectOptions();
             options.setCleanSession(true);
             options.setAutomaticReconnect(true);
@@ -63,23 +86,31 @@ public class MqttApplicationService {
             client.connect(options);
             log.info("Conectado com sucesso ao broker MQTT.");
 
-            client.subscribe(subTopic, (topic, mqttMessage) -> {
-                try {
-                    String payload = new String(mqttMessage.getPayload(), StandardCharsets.UTF_8);
-                    Message msg = parsePayload(payload);
-
-                    if (msg != null) {
-                        eventPublisher.publishEvent(new SensorDataReceivedEvent(msg));
-                    }
-                } catch (Exception e) {
-                    log.error("Erro ao processar mensagem recebida no tópico {}: {}", topic, e.getMessage());
-                }
-            });
-            log.info("Inscrito no tópico de sensores: {}", subTopic);
-
         } catch (MqttException e) {
             log.warn("Não foi possível conectar imediatamente ao broker MQTT: {}. Reconexão automática ativa.",
                     e.getMessage());
+        }
+    }
+
+    private void subscribeToSensors() {
+        try {
+            if (client != null && client.isConnected()) {
+                client.subscribe(subTopic, (topic, mqttMessage) -> {
+                    try {
+                        String payload = new String(mqttMessage.getPayload(), StandardCharsets.UTF_8);
+                        Message msg = parsePayload(payload);
+
+                        if (msg != null) {
+                            eventPublisher.publishEvent(new SensorDataReceivedEvent(msg));
+                        }
+                    } catch (Exception e) {
+                        log.error("Erro ao processar mensagem recebida no tópico {}: {}", topic, e.getMessage());
+                    }
+                });
+                log.info("Inscrito com sucesso no tópico de sensores: {}", subTopic);
+            }
+        } catch (MqttException e) {
+            log.error("Falha ao assinar tópico de sensores {}: {}", subTopic, e.getMessage());
         }
     }
 
@@ -157,7 +188,11 @@ public class MqttApplicationService {
             Message msg = new Message();
             msg.setTemperature(Float.parseFloat(partes[0].trim()));
             msg.setHumidity(Float.parseFloat(partes[1].trim()));
-            msg.setDateAndTime(LocalDateTime.parse(partes[2].trim()));
+            try {
+                msg.setDateAndTime(LocalDateTime.parse(partes[2].trim().replace(" ", "T")));
+            } catch (Exception dateEx) {
+                msg.setDateAndTime(LocalDateTime.now());
+            }
             return msg;
         } catch (Exception e) {
             log.warn("Ignorando payload com formato inválido: '{}'", payload);

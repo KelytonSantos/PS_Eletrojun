@@ -5,13 +5,13 @@
 #include "time.h"
 
 //________________________________config de sistema
-#define DHT_P 21
-#define LED1 25
-#define LED2 33
-#define LED3 32
+#define DHT_P 26
+#define LED1 4
+#define LED2 5
+#define LED3 21
 
-const char *ssid = "Not-A-Robot";
-const char *pass = "20027477FLA";
+const char *ssid = "HeavensRoad";
+const char *pass = "PSRMFKfR";
 const char *mqtt_server = "broker.hivemq.com";
 const int mqtt_port = 1883;
 unsigned long lastMsg = 0;

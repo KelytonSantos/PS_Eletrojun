@@ -1,0 +1,35 @@
+# Secrets and local configuration
+.env
+.env.*
+!.env.example
+!.env.*.example
+
+# Python
+.venv/
+venv/
+__pycache__/
+*.py[cod]
+.pytest_cache/
+.coverage
+htmlcov/
+
+# Java/Maven and generic build output
+target/
+build/
+dist/
+out/
+*.class
+
+# Embedded/PlatformIO
+.pio/
+
+# JavaScript and editor-generated dependencies
+node_modules/
+.idea/
+.vscode/
+
+# Runtime data and logs
+*.sqlite3
+*.log
+logger/data/
+notifier/data/

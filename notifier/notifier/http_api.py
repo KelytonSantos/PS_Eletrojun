@@ -5,14 +5,24 @@ from flask import Flask, jsonify, request
 from .storage import AlertStorage
 
 
+API_PREFIX = "/api/alerts"
+
+
 def create_http_app(storage: AlertStorage) -> Flask:
     app = Flask(__name__)
 
-    @app.get("/api/realtime/emails")
+    @app.after_request
+    def after_request(response):
+        response.headers["Access-Control-Allow-Origin"] = "*"
+        response.headers["Access-Control-Allow-Headers"] = "Content-Type, Authorization"
+        response.headers["Access-Control-Allow-Methods"] = "GET, POST, DELETE, OPTIONS"
+        return response
+
+    @app.get(f"{API_PREFIX}/emails")
     def list_emails():
         return jsonify({"success": True, "emails": storage.list_emails()})
 
-    @app.post("/api/realtime/email/<path:email>")
+    @app.post(f"{API_PREFIX}/email/<path:email>")
     def add_email(email: str):
         try:
             emails = storage.add_email(email)
@@ -28,7 +38,7 @@ def create_http_app(storage: AlertStorage) -> Flask:
             )
         return jsonify({"success": True, "emails": emails})
 
-    @app.delete("/api/realtime/email/<path:email>")
+    @app.delete(f"{API_PREFIX}/email/<path:email>")
     def delete_email(email: str):
         try:
             emails = storage.remove_email(email)
@@ -36,12 +46,12 @@ def create_http_app(storage: AlertStorage) -> Flask:
             return jsonify({"success": False, "error": "Email vazio ou inválido"}), 400
         return jsonify({"success": True, "emails": emails})
 
-    @app.get("/api/realtime/limits")
+    @app.get(f"{API_PREFIX}/limits")
     def get_limits():
         limits = storage.get_limits()
         return jsonify({"tempMax": limits.temp_max, "humiMin": limits.humi_min})
 
-    @app.post("/api/realtime/limits")
+    @app.post(f"{API_PREFIX}/limits")
     def update_limits():
         body = request.get_json(silent=True)
         temp = None

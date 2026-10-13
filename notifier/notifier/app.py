@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import atexit
 import logging
+import os
 from concurrent.futures import ThreadPoolExecutor
 
 from .alerts import AlertEngine
@@ -65,10 +66,35 @@ def create_service(settings: Settings | None = None) -> NotifierService:
     return NotifierService(settings or load_settings())
 
 
+_service: NotifierService | None = None
+
+
+def get_service() -> NotifierService:
+    global _service
+    if _service is None:
+        _service = create_service()
+        _service.start()
+    return _service
+
+
+if os.getenv("SMTP_HOST"):
+    try:
+        service = get_service()
+        http_app = service.http_app
+    except Exception as exc:
+        logging.getLogger(__name__).warning("Could not auto-start NotifierService: %s", exc)
+        http_app = create_http_app(
+            AlertStorage(os.getenv("ALERT_CONFIG_FILE", "notifier_data.sqlite3"))
+        )
+else:
+    http_app = create_http_app(
+        AlertStorage(os.getenv("ALERT_CONFIG_FILE", "notifier_data.sqlite3"))
+    )
+
+
 def main() -> None:
-    service = create_service()
-    service.start()
-    service.http_app.run(host=service._settings.http_host, port=service._settings.http_port)
+    svc = get_service()
+    svc.http_app.run(host=svc._settings.http_host, port=svc._settings.http_port)
 
 
 if __name__ == "__main__":

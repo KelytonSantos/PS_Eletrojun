@@ -5,8 +5,9 @@ import threading
 from datetime import datetime
 from pathlib import Path
 
-import paho.mqtt.client as mqtt
+from dotenv import load_dotenv
 
+import paho.mqtt.client as mqtt
 #=======================================================================================
 #CONFIGURAÇÕES
 #=======================================================================================
@@ -14,9 +15,12 @@ import paho.mqtt.client as mqtt
 #Diretório do próprio microsservico, independente de onde o comando Python for executado
 BASE_DIR = Path(__file__).resolve().parent
 
+load_dotenv(dotenv_path=BASE_DIR/ ".env")
+
+
 BROKER_URL = os.getenv("MQTT_BROKER_URL", "localhost")
-BROKER_PORT = int(os.getenv("MQQTT_BROKER_PORT", "1883"))
-CLIENT_ID = os.getenv("MQQT_CLIENT_ID", "eletronjun-log-service")
+BROKER_PORT = int(os.getenv("MQTT_BROKER_PORT", "1883"))
+CLIENT_ID = os.getenv("MQTT_CLIENT_ID", "eletronjun-log-service")
 TOPIC = os.getenv(
     "MQTT_TOPIC",
     "esp32_Eletronjun_Dht11/sensor",   

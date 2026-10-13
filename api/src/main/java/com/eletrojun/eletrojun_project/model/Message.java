@@ -17,7 +17,7 @@ public class Message {
 
     public Message(Float temperature, Float humidity, LocalDateTime dateAndTime) {
         this.temperature = temperature;
-        this.humidity = temperature;
+        this.humidity = humidity;
         this.dateAndTime = dateAndTime;
     }
 
