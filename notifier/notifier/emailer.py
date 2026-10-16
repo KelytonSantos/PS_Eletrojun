@@ -79,7 +79,7 @@ class EmailSender:
 
         text = (
             "========================================================\n"
-            "ALERTA DE TELEMETRIA OPERACIONAL - ELETROJUN\n"
+            "ALERTA DE TELEMETRIA OPERACIONAL - ELETRONJUN\n"
             "========================================================\n\n"
             f"Tipo: {alert_type}\n"
             f"Valor atual: {current_value}{unit_suffix}\n"
@@ -184,14 +184,14 @@ class EmailSender:
           <tr>
             <td style="background-color: #FFFFFF; border-radius: 16px; border: 1px solid #E3E8E3; box-shadow: 0 4px 20px rgba(0, 0, 0, 0.04); overflow: hidden;">
               
-              <!-- Faixa Preta do Topo (Header EletroJun) -->
+              <!-- Faixa Preta do Topo (Header EletronJun) -->
               <table role="presentation" width="100%" border="0" cellspacing="0" cellpadding="0" style="background-color: #0B0B0B; width: 100%;">
                 <tr>
                   <td style="padding: 20px 28px;">
                     <table role="presentation" width="100%" border="0" cellspacing="0" cellpadding="0">
                       <tr>
                         <td align="left" style="vertical-align: middle;">
-                          <span style="font-size: 16px; font-weight: 800; letter-spacing: 0.12em; color: #FFFFFF; text-transform: uppercase;">EletroJun</span>
+                          <span style="font-size: 16px; font-weight: 800; letter-spacing: 0.12em; color: #FFFFFF; text-transform: uppercase;">EletronJun</span>
                           <span style="font-size: 13px; font-weight: 600; color: #00C853; margin-left: 8px;">Telemetria</span>
                         </td>
                         <td align="right" style="vertical-align: middle;">
@@ -292,7 +292,7 @@ class EmailSender:
           <tr>
             <td align="center" style="padding-top: 24px; padding-bottom: 12px; text-align: center;">
               <p style="margin: 0 0 6px 0; font-size: 12px; font-weight: 600; color: #0B0B0B;">
-                EletroJun • Divisão de IoT &amp; Automação
+                EletronJun • Divisão de IoT &amp; Automação
               </p>
               <p style="margin: 0 0 6px 0; font-size: 11px; color: #6E6E73; line-height: 1.4;">
                 Notificação automática gerada pelo microsserviço <code style="font-family: ui-monospace, 'SF Mono', Menlo, Consolas, monospace; background-color: #E3E8E3; padding: 2px 6px; border-radius: 4px; color: #0B0B0B;">notifier</code>.

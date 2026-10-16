@@ -65,7 +65,9 @@ def test_email_sender_builds_message_timeout_and_auth(monkeypatch):
     assert len(parts) == 2
     assert "Tipo: temperatura" in parts[0].get_payload()
     assert "Origem MQTT: esp32_Eletrojun_Dht11/sensor" in parts[0].get_payload()
+    assert "ELETRONJUN" in parts[0].get_payload()
     assert "<h2>Alerta de temperatura</h2>" in parts[1].get_payload()
+    assert "EletronJun" in parts[1].get_payload()
 
 
 def test_email_sender_uses_starttls_when_configured(monkeypatch):
