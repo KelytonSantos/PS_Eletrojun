@@ -1,0 +1,10 @@
+{
+  "appId": "com.check.app",
+  "appName": "CheckTempHumi",
+  "webDir": "www",
+  "plugins": {
+    "StatusBar": {
+      "style": "LIGHT"
+    }
+  }
+}

@@ -128,3 +128,24 @@ As portas internas `8081` e `8082` não são publicadas diretamente no host.
 cd logger && python -m pytest -q
 cd ../notifier && python -m pytest -q
 ```
+
+## Documentação da API e MQTT
+
+Para a especificação completa de todas as rotas HTTP, payloads de requisição/resposta, eventos SSE, tópicos e mensagens MQTT com exemplos em cURL, consulte o arquivo dedicado:
+
+👉 **[Documentação Completa da API e MQTT (api.md)](./api.md)**
+
+### Resumo Rápido de Rotas e Tópicos
+
+| Protocolo | Rota / Tópico | Método / Tipo | Descrição |
+| :--- | :--- | :--- | :--- |
+| **HTTP** | `/api/realtime/mode` | `GET` | Consulta o modo operacional atual e conectividade MQTT |
+| **HTTP** | `/api/realtime/mode/{mode}` | `POST` | Alterna modo (`AUTOMATICO`, `LIGADO`, `DESLIGADO`, `LEITURA`) |
+| **HTTP** | `/api/realtime/history` | `GET` | Retorna buffer com histórico das últimas medições |
+| **HTTP** | `/api/realtime/automatico/stream` | `GET (SSE)` | Streaming reativo contínuo via Server-Sent Events |
+| **HTTP** | `/api/alerts/limits` | `GET / POST` | Consulta ou define limiares de alerta de temperatura e umidade |
+| **HTTP** | `/api/alerts/emails` | `GET` | Lista e-mails cadastrados para receber notificações |
+| **HTTP** | `/api/alerts/email/{email}` | `POST / DELETE` | Cadastra ou remove e-mails de alerta no banco SQLite |
+| **MQTT** | `esp32_Eletrojun_Dht11/sensor` | Pub / Sub | Telemetria enviada pelo ESP32 (`temp,umidade,timestamp`) |
+| **MQTT** | `esp32_Eletrojun_Dht11/modo` | Pub / Sub | Comandos enviados ao ESP32 (`AUTOMATICO`, `LIGADO`, `DESLIGADO`, `LEITURA`) |
+

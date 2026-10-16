@@ -24,6 +24,11 @@ import com.eletrojun.eletrojun_project.model.Message;
 import com.eletrojun.eletrojun_project.service.MqttApplicationService;
 import com.eletrojun.eletrojun_project.service.event.SensorDataReceivedEvent;
 
+/**
+ * Controller REST responsável pelo fluxo em tempo real (telemetria e modos de operação).
+ * Interage diretamente com o serviço MQTT para repassar comandos ao ESP32 e
+ * transmitir telemetria para os clientes web/mobile via Server-Sent Events (SSE).
+ */
 @CrossOrigin(origins = "*")
 @RestController
 @RequestMapping("/api/realtime")
@@ -36,6 +41,12 @@ public class RealtimeController {
     private final List<Message> recentReadings = new CopyOnWriteArrayList<>();
     private static final int MAX_HISTORY_SIZE = 100;
 
+    /**
+     * Endpoint SSE para streaming contínuo de telemetria em tempo real (RF02).
+     * Estabelece conexão persistente unidirecional para envio de eventos "sensor-readings".
+     *
+     * @return SseEmitter canal de eventos para o cliente conectado.
+     */
     @GetMapping(value = "/automatico/stream", produces = MediaType.TEXT_EVENT_STREAM_VALUE)
     public SseEmitter stream() {
         SseEmitter emitter = new SseEmitter(Long.MAX_VALUE);
@@ -84,11 +95,21 @@ public class RealtimeController {
         }
     }
 
+    /**
+     * Retorna a lista das últimas leituras recebidas do sensor (RF08).
+     *
+     * @return Lista com até 100 medições mais recentes ordenadas decrescentemente por data.
+     */
     @GetMapping("/history")
     public ResponseEntity<List<Message>> getHistory() {
         return ResponseEntity.ok(Collections.unmodifiableList(new ArrayList<>(recentReadings)));
     }
 
+    /**
+     * Consulta o modo de operação atual do dispositivo e a conectividade com o broker MQTT.
+     *
+     * @return Objeto JSON contendo "mode" (ex: AUTOMATICO, LIGADO, DESLIGADO) e "mqttConnected" (booleano).
+     */
     @GetMapping("/mode")
     public ResponseEntity<Map<String, Object>> getMode() {
         String currentMode = mqttApplicationService.getActualMode();
@@ -99,6 +120,12 @@ public class RealtimeController {
                 "mqttConnected", connected));
     }
 
+    /**
+     * Altera o modo de operação do sistema ou dispara uma medição manual sob demanda (RF03, RF04, RF05, RF06).
+     *
+     * @param mode Modo desejado: "DESLIGADO", "LIGADO", "AUTOMATICO" ou "LEITURA" (sob demanda).
+     * @return Resposta HTTP indicando sucesso ou detalhamento de erro caso o broker esteja desconectado.
+     */
     @PostMapping("/mode/{mode}")
     public ResponseEntity<Map<String, Object>> setMode(@PathVariable String mode) {
         if (mode == null || mode.isBlank()) {

@@ -20,10 +20,12 @@ def create_http_app(storage: AlertStorage) -> Flask:
 
     @app.get(f"{API_PREFIX}/emails")
     def list_emails():
+        """Retorna a lista de endereços de e-mail cadastrados para receber notificações de alerta."""
         return jsonify({"success": True, "emails": storage.list_emails()})
 
     @app.post(f"{API_PREFIX}/email/<path:email>")
     def add_email(email: str):
+        """Cadastra um novo endereço de e-mail destinatário para alertas (RF10)."""
         try:
             emails = storage.add_email(email)
         except ValueError:
@@ -40,6 +42,7 @@ def create_http_app(storage: AlertStorage) -> Flask:
 
     @app.delete(f"{API_PREFIX}/email/<path:email>")
     def delete_email(email: str):
+        """Remove um endereço de e-mail da lista de destinatários de alertas."""
         try:
             emails = storage.remove_email(email)
         except ValueError:
@@ -48,11 +51,13 @@ def create_http_app(storage: AlertStorage) -> Flask:
 
     @app.get(f"{API_PREFIX}/limits")
     def get_limits():
+        """Retorna os limites configurados de temperatura máxima (°C) e umidade mínima (%) (RF09)."""
         limits = storage.get_limits()
         return jsonify({"tempMax": limits.temp_max, "humiMin": limits.humi_min})
 
     @app.post(f"{API_PREFIX}/limits")
     def update_limits():
+        """Atualiza dinamicamente os limiares de alerta de temperatura e umidade."""
         body = request.get_json(silent=True)
         temp = None
         humi = None
