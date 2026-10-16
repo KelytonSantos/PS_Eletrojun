@@ -35,6 +35,7 @@ ESP32 <------> MQTT broker externo <------> API Java
 
 ### Módulos
 
+- **`app/`**: aplicativo móvel Android (Capacitor); monitoramento em tempo real, histórico e ajustes de alertas. Inclui o instalador pronto [`app/app-debug.apk`](./app/app-debug.apk).
 - **`firmware/`**: firmware do ESP32; publica leituras e recebe comandos via MQTT.
 - **`api/`**: API Java/Spring Boot; consulta o estado e publica comandos MQTT.
 - **`logger/`**: consumidor Python/Paho; valida as leituras e grava `LogEsp.txt`.
